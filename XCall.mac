@@ -1,0 +1,112 @@
+;	Universidade Federal da Bahia
+;	Departamento de Ciência da Computação
+;
+;	Disciplina:	MAT149 Linguagens de montagem
+;	Professor:	Luiz Eduardo
+;
+;	Linkage conventions macros
+;
+;	01 de outubro de 2003
+;	17 de agosto de 2005	Permite omissão de argumentos
+;				Exemplos:	XCALL TestProc,a,b,c,d,e
+;						XCALL TestProc,,b,c,,e
+;	22 de agosto de 2005	Suporte a encadeamentos de XCALL
+;	12 de setembro de 2005	Suporte a argumentos indexados
+;				Exemplo:	XCALL TestProc,,b[ESI],c,,e[EDI]
+;
+
+XCALL		MACRO	proc, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9
+		LOCAL	XcallPush
+
+		PUSHAD
+
+		MOV	EBX,0
+		MOV	ECX,DWORD PTR [EBX]
+		INC	ECX
+
+		MOV	EAX,4
+		MUL	DWORD PTR [EBX]
+		MOV	EBX,EAX
+
+XcallPush:
+		PUSH	DWORD PTR [EBX]
+		SUB	EBX,4
+		LOOP	XcallPush
+
+		MOV	EAX,0
+		MOV	ECX,12
+		MOV	EDI,0
+		REP	STOSD
+
+		MOV	EBX,0
+
+		IFNB	<&arg1>
+			XCALLARG	&arg1,1
+		ENDIF
+
+		IFNB	<&arg2>
+			XCALLARG	&arg2,2
+		ENDIF
+
+		IFNB	<&arg3>
+			XCALLARG	&arg3,3
+		ENDIF
+
+		IFNB	<&arg4>
+			XCALLARG	&arg4,4
+		ENDIF
+
+		IFNB	<&arg5>
+			XCALLARG	&arg5,5
+		ENDIF
+
+		IFNB	<&arg6>
+			XCALLARG	&arg6,6
+		ENDIF
+
+		IFNB	<&arg7>
+			XCALLARG	&arg7,7
+		ENDIF
+
+		IFNB	<&arg8>
+			XCALLARG	&arg8,8
+		ENDIF
+
+		IFNB	<&arg9>
+			XCALLARG	&arg9,9
+		ENDIF
+
+		XCALLEND	&proc
+
+		ENDM
+
+
+XCALLARG	MACRO	arg,pos
+
+		MOV	DWORD PTR [EBX],&pos
+		LEA	EAX,&arg
+		MOV	DWORD PTR [EBX+&pos*4],EAX
+
+		ENDM
+
+
+XCALLEND	MACRO	proc
+		LOCAL	XcallPop,XcallPopad
+
+		CALL	FAR PTR &proc
+
+		MOV	EBX,0
+		POP	DWORD PTR [EBX]
+		CMP	DWORD PTR [EBX],0
+		JE	XcallPopad
+		MOV	ECX,DWORD PTR [EBX]
+
+XcallPop:
+		ADD	EBX,4
+		POP	DWORD PTR [EBX]
+		LOOP	XcallPop
+
+XcallPopad:
+		POPAD
+
+		ENDM

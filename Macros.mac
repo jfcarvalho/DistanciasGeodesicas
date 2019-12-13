@@ -1,0 +1,34 @@
+;	Universidade Federal da Bahia
+;	Departamento de Ciência da Computação
+;
+;	Disciplina:	MAT149 Linguagens de montagem
+;	Professor:	Luiz Eduardo
+;
+;	Macros
+;
+;	10 de março de 2003
+;
+
+INIPROG		MACRO
+
+		MOV	AX,@DATA
+		MOV	DS,AX
+		MOV	ES,AX	
+
+		ENDM
+
+
+ENDPROG		MACRO
+
+		MOV	AH,4Ch
+		INT	21h
+
+		ENDM
+
+
+ID		MACRO	text,textLen
+
+		XCALL	ScreenClear
+		XCALL	ScreenWrite, &text, &textLen
+
+		ENDM
